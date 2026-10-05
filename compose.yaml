@@ -1,0 +1,16 @@
+# Local web UI for the SQLite database: http://localhost:8080
+#   docker compose up -d     start
+#   docker compose down      stop
+services:
+  db-ui:
+    image: coleifer/sqlite-web:latest
+    ports:
+      - "127.0.0.1:8080:8080"   # local machine only
+    volumes:
+      # Read-only on purpose: the service writes the DB from Windows, and SQLite's WAL shared
+      # memory isn't shared across the Docker VM boundary, so this viewer must never write.
+      - ./data:/data:ro
+    environment:
+      SQLITE_DATABASE: attendance.db
+    command: ["sh", "-c", "sqlite_web --host 0.0.0.0 --no-browser --read-only $$SQLITE_DATABASE"]
+    restart: unless-stopped
