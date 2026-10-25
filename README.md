@@ -86,6 +86,18 @@ uv run attendance employee egor 30
 uv run pytest
 ```
 
+## Running in the background on Windows
+
+After `uv sync` and copying `.env`, run once in PowerShell **as Administrator**:
+
+```
+powershell -ExecutionPolicy Bypass -File deploy\install-windows-task.ps1
+```
+
+This registers the Task Scheduler task "Attendance bot". It starts at boot without anyone logging in, restarts the service if it crashes, and logs to `data\service.log`. Running the script again re-registers the task. Set the PC to never sleep.
+
+Restart after a code or `.env` change: `Stop-ScheduledTask "Attendance bot"; Start-ScheduledTask "Attendance bot"`. Remove: `Unregister-ScheduledTask "Attendance bot" -Confirm:$false`.
+
 ## Deployment (Raspberry Pi)
 
 The service runs on a Raspberry Pi in the office network, managed by systemd. Code goes laptop → git remote → Pi over SSH. [Tailscale](https://tailscale.com/) on both machines gives SSH access from anywhere without opening ports.
