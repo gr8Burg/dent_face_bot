@@ -1,6 +1,7 @@
 from __future__ import annotations
 
 import os
+import re
 from dataclasses import dataclass
 from datetime import datetime, time, tzinfo
 from pathlib import Path
@@ -9,8 +10,12 @@ from zoneinfo import ZoneInfo
 from dotenv import load_dotenv
 
 
-def _int_set(value: str) -> frozenset[int]:
-    return frozenset(int(x) for x in value.replace(" ", "").split(",") if x)
+def _int_set(name: str, value: str) -> frozenset[int]:
+    """Parses a list of ids separated by commas, semicolons or spaces, e.g. "123, -100456"."""
+    try:
+        return frozenset(int(x) for x in re.split(r"[,;\s]+", value.strip()) if x)
+    except ValueError:
+        raise SystemExit(f"{name} must be a list of numeric ids separated by commas, got {value!r}") from None
 
 
 def _time(value: str) -> time:
@@ -79,8 +84,8 @@ def load_config(*, require_device: bool = True) -> Config:
         reconcile_minutes=int(env("RECONCILE_MINUTES", "10")),
         backfill_days=int(env("BACKFILL_DAYS", "31")),
         telegram_token=env("TELEGRAM_BOT_TOKEN") or None,
-        report_chat_ids=_int_set(env("TELEGRAM_REPORT_CHAT_IDS", "")),
-        admin_ids=_int_set(env("TELEGRAM_ADMIN_IDS", "")),
+        report_chat_ids=_int_set("TELEGRAM_REPORT_CHAT_IDS", env("TELEGRAM_REPORT_CHAT_IDS", "")),
+        admin_ids=_int_set("TELEGRAM_ADMIN_IDS", env("TELEGRAM_ADMIN_IDS", "")),
         daily_report_time=_time(env("DAILY_REPORT_TIME", "20:00")),
         daily_report_for=daily_for,
         monthly_report_time=_time(env("MONTHLY_REPORT_TIME", "09:00")),
